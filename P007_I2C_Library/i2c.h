@@ -34,7 +34,10 @@
 /************************************************************************/
 /* API					                                                                  */
 /************************************************************************/
-
+int SendStart(void);
+void TransmitAddress(BYTE address);
+int SendData(BYTE data);
+void SendStop(void);
 
 
 
