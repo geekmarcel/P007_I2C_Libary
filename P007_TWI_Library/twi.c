@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------------------------------------------------------------------------------------
- * Project:		I2C Library
+ * Project:		TWI (I2C) Library
  * Hardware:		Arduino UNO
  * Micro:			ATMEGA328P
  * IDE:			Atmel Studio 6.2
  *
- * Name:    		i2c.c
- * Purpose: 		I2C Library
+ * Name:    		twi.c
+ * Purpose: 		TWI (I2C) Library
  * Date:			21-10-2015
  * Version:		1.0	
  * Author:		Marcel van der Ven
@@ -20,7 +20,7 @@
 /************************************************************************/
 #define F_CPU			16000000UL
 
-/* Timeouts for the I2C (TWI) protocol */
+/* Timeouts for the TWI protocol */
 #define TIMEOUT_START						1000
 #define TIMEOUT_ADDRESS_TRANSMISSION		1000
 
@@ -34,18 +34,18 @@
 /************************************************************************/
 #include <avr/io.h>
 #include "util/delay.h"
-#include "i2c.h"
+#include "twi.h"
 #include "string.h"
 
 
 /************************************************************************/
 /* Structures				                                                                  */
 /************************************************************************/
-struct I2C_Bus
+struct TWI_Bus
 {
 	volatile PinSettings sda;
 	volatile PinSettings scl;
-}i2c;
+}twi;
 
 
 /************************************************************************/
@@ -53,12 +53,12 @@ struct I2C_Bus
 /************************************************************************/	
 
 /***************************************************************************
-*  Function:		InitializeI2c()
-*  Description:		Initializes I2C on the ATMEGA328P, also known as TWI on the Atmel.
+*  Function:		InitializeTwi()
+*  Description:		Initializes TWI on the ATMEGA328P, also known as TWI on the Atmel.
 *  Receives:		Nothing
 *  Returns:		Nothing
 ***************************************************************************/
-void InitializeI2c()
+void InitializeTwi()
 {
 	
 }

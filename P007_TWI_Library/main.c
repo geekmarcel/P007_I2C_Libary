@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------------------------------------------------------------------------------------
- * Project: 		Post 7 I2C Library
+ * Project: 		Post 7 TWI Library
  * Hardware:		Arduino UNO
  * Micro:			ATMEGA328P
  * IDE:			Atmel Studio 6.2
  *
  * Name:    		main.c
- * Purpose: 		I2C Library Example
+ * Purpose: 		TWI Library Example
  * Date:			21-10-2015
  * Author:		Marcel van der Ven
  *
