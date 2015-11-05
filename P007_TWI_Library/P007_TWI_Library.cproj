@@ -114,6 +114,9 @@
     <Folder Include="Docs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Docs\AVR315 Using the TWI module as I2C Master.pdf">
+      <SubType>compile</SubType>
+    </None>
     <None Include="Docs\I2C Spec v 6.0.pdf">
       <SubType>compile</SubType>
     </None>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Atmel Studio Solution File, Format Version 11.00
-Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "P007_TWI_Library", "P007_I2C_Library\P007_TWI_Library.cproj", "{068E42E2-E7A1-4D88-BD40-88C7671893C1}"
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "P007_TWI_Library", "P007_TWI_Library\P007_TWI_Library.cproj", "{068E42E2-E7A1-4D88-BD40-88C7671893C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

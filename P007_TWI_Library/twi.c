@@ -45,6 +45,8 @@ struct TWI_Bus
 {
 	volatile PinSettings sda;
 	volatile PinSettings scl;
+	BYTE slaveAddress;
+	TwiMode mode;
 }twi;
 
 
@@ -58,13 +60,75 @@ struct TWI_Bus
 *  Receives:		Nothing
 *  Returns:		Nothing
 ***************************************************************************/
-void InitializeTwi()
+void InitializeTwi(Prescalar prescalar, TwiSpeed speed)
 {
+	/* Set prescalar bits */
+	TWSR |= prescalar;
+	
+	/* Set SCL Frequency */
+	switch(speed)
+	{
+		case LOW_SPEED:
+			TWBR = (F_CPU / 2 * 10000) - 8 * prescalar;
+			break;
+		case STANDARD_MODE:
+			TWBR = (F_CPU / 2 * 100000) - 8 * prescalar;
+			break;
+		case FAST_MODE:
+			TWBR = (F_CPU / 2 * 400000) - 8 * prescalar;
+			break;
+		case FAST_MODE_PLUS:
+			TWBR = (F_CPU / 2 * 1000000) - 8 * prescalar;
+			break;
+		case HIGH_SPEED_MODE:
+			TWBR = (F_CPU / 2 * 3400000) - 8 * prescalar;
+			break;
+	}
+	
 	
 }
 
 /***************************************************************************
-*  Function:		SendStart()
+*  Function:		SetMode(TwiMode mode)
+*  Description:		Sets the TWI Mode, Master/Slave and Transmitter or Receiver.
+*				For the slave
+*  Receives:		The mode to set.
+*  Returns:		Nothing
+***************************************************************************/
+void SetMode(TwiMode mode, BOOL respondToGeneralCall)
+{	
+	twi.mode = mode;
+
+	switch (mode)
+	{
+		case MASTER_TRANSMITTER:
+			/* Do Nothing */
+			break;
+		case MASTER_RECEIVER:
+			/* Do nothing */
+			break;
+		case SLAVE_TRANSMITTER:
+		
+			/* Set the slave address and enable the general call address (address 0x00) if set */
+			/* Then the LSB of the TWAR register should be set */
+			TWAR = (address << 1) | respondToGeneralCall;
+			
+			/* Save own address */
+			twi.slaveAddress = address;
+			
+			/* Set TWCR into slave mode */
+			TWCR = (1 << TWEA) | (1 << TWEN);
+			
+			break;		
+		case SLAVE_RECEIVER:
+		
+		
+			break;
+	}	
+}
+
+/***************************************************************************
+*  Function:		SendStart(void)
 *  Description:		Sends the start condition.
 *  Receives:		Nothing
 *  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
@@ -87,7 +151,7 @@ int SendStart(void)
 	}
 	
 	/* Check for errors */
-	if((TWSR & 0xF8) != START)
+	if((TWSR & 0xF8) != START_SEND_STATUS)
 		error = TWI_ERROR:
 		
 	return error;
@@ -121,7 +185,7 @@ void TransmitAddress(BYTE address)
 	}
 		
 	/* Check for errors */
-	if((TWSR & 0xF8) != MT_SLA_ACK)
+	if((TWSR & 0xF8) != ADDRESS_WRITE_ACK_STATUS && (TWSR & 0xF8) != ADDRESS_READ_ACK_STATUS)
 		error = TWI_ERROR;
 		
 	return error;		
@@ -155,7 +219,7 @@ int SendData(BYTE data)
 	}
 		
 	/* Check for errors */
-	if((TWSR & 0xF8) != MT_DATA_ACK)
+	if((TWSR & 0xF8) != DATA_SEND_ACK_STATUS && (TWSR & 0xF8) != DATA_RECEIVED_ACK_STATUS)
 		error = TWI_ERROR:
 		
 	return error;
