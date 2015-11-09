@@ -16,21 +16,13 @@
  *--------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /************************************************************************/
-/* Defines				                                                                  */
+/* Defines
 /************************************************************************/
 #define F_CPU			16000000UL
 
-/* Timeouts for the TWI protocol */
-#define TIMEOUT_START						1000
-#define TIMEOUT_ADDRESS_TRANSMISSION		1000
-
-/* Result */
-#define SUCCEEDED		0x00
-#define TIMEOUT_ERROR	0x01
-#define TWI_ERROR		0x02
 
 /************************************************************************/
-/* Includes				                                                                  */
+/* Includes
 /************************************************************************/
 #include <avr/io.h>
 #include "util/delay.h"
@@ -39,7 +31,7 @@
 
 
 /************************************************************************/
-/* Structures				                                                                  */
+/* Structures				                                
 /************************************************************************/
 struct TWI_Bus
 {
@@ -51,7 +43,7 @@ struct TWI_Bus
 
 
 /************************************************************************/
-/* Functions				                                                                  */
+/* Functions				                                            
 /************************************************************************/	
 
 /***************************************************************************
@@ -128,10 +120,68 @@ void SetMode(TwiMode mode, BOOL respondToGeneralCall)
 }
 
 /***************************************************************************
-*  Function:		SendStart(void)
-*  Description:		Sends the start condition.
-*  Receives:		Nothing
-*  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
+  Function:		TwiSend1Byte(void)
+  Description:	Wrapper for sending 1 byte to the device with the given address.
+  Receives:		BYTE address			:		Address of TWI device on the bus.
+				BYTE* bytesToSend		:		Pointer to an array with the bytes to send.
+  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
+***************************************************************************/
+void TwiSend1Byte(BYTE address, BYTE byteToSend)
+{
+	BYTE byteArray[1] = {byteToSend};
+	
+	return TwiSendBytes(address, byteArray, 1);
+}
+
+/***************************************************************************
+  Function:		TwiSendBytes(void)
+  Description:	Sends the given number of bytes over TWI.
+  Receives:		BYTE* bytesToSend		:		Pointer to an array with the bytes to send.
+				BYTE numberOfBytes		:		Number of bytes to send.
+  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
+***************************************************************************/
+void TwiSendBytes(BYTE address, BYTE* bytesToSend, BYTE numberOfBytes)
+{
+	BYTE result = SUCCEEDED;
+	
+	/* Send start condition */
+	result = SendStart();
+	if(result != SUCCEEDED)
+		return result;
+		
+	/* Send address of device */
+	result = TransmitAddress();
+	if(result != SUCCEEDED)
+		return result;
+	
+	/* Send data */	
+	result = SendData(bytesToSend);
+	if(result != SUCCEEDED)
+		return result;
+		
+	/* Send stop condition */
+	result = SendStop();
+	if(result != SUCCEEDED)
+		return result;
+}
+
+/***************************************************************************
+  Function:		TwiSend(void)
+  Description:	Sends the given number of bytes over TWI.
+  Receives:		BYTE* bytesToSend		:		Pointer to an array with the bytes to send.
+				BYTE numberOfBytes		:		Number of bytes to send.
+  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
+***************************************************************************/
+void TwiSend(BYTE* bytesToSend, BYTE numberOfBytes)
+{
+	
+}
+
+/***************************************************************************
+  Function:		SendStart(void)
+  Description:	Sends the start condition.
+  Receives:		Nothing
+  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
 ***************************************************************************/
 int SendStart(void)
 {
@@ -158,10 +208,10 @@ int SendStart(void)
 }
 
 /***************************************************************************
-*  Function:		TransmitAddress()
-*  Description:		Transmits the 7-bit + RW bit address.
-*  Receives:		8-bit address and RW bit
-*  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
+  Function:		TransmitAddress()
+  Description:	Transmits the 7-bit + RW bit address.
+  Receives:		8-bit address and RW bit
+  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
 ***************************************************************************/
 void TransmitAddress(BYTE address)
 {
@@ -192,10 +242,10 @@ void TransmitAddress(BYTE address)
 }
 
 /***************************************************************************
-*  Function:		SendData()
-*  Description:		Sends the data.
-*  Receives:		Pointer to the data.
-*  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
+  Function:		SendData()
+  Description:	Sends the data.
+  Receives:		Pointer to the data.
+  Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
 ***************************************************************************/
 int SendData(BYTE data)
 {
@@ -226,10 +276,10 @@ int SendData(BYTE data)
 }
 
 /***************************************************************************
-*  Function:		SendStop()
-*  Description:		Sends the stop condition.
-*  Receives:		Nothing
-*  Returns:		Nothing
+  Function:		SendStop()
+  Description:	Sends the stop condition.
+  Receives:		Nothing
+  Returns:		Nothing
 ***************************************************************************/
 void SendStop(void)
 {

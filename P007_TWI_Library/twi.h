@@ -71,6 +71,10 @@ enum TwiSpeed{LOW_SPEED, STANDARD_MODE, FAST_MODE, FAST_MODE_PLUS, HIGH_SPEED_MO
 /************************************************************************/
 void InitializeTwi(Prescalar prescalar, TwiSpeed speed);
 void SetMode(TwiMode mode, BOOL respondToGeneralCall);
+void TwiSend1Byte(BYTE address, BYTE byteToSend);
+void TwiSendBytes(BYTE address, BYTE* bytesToSend, BYTE numberOfBytes);
+
+/* Low Level */
 int SendStart(void);
 void TransmitAddress(BYTE address);
 int SendData(BYTE data);
