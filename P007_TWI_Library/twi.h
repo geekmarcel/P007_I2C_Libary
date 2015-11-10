@@ -2,12 +2,12 @@
  * Project: 		TWI (I2C) Library
  * Hardware:		Arduino UNO
  * Micro:			ATMEGA328P
- * IDE:			Atmel Studio 6.2
+ * IDE:				Atmel Studio 6.2
  *
  * Name:    		twi.h
  * Purpose: 		TWI (I2C) Library Header
  * Date:			21-10-2015
- * Author:		Marcel van der Ven
+ * Author:			Marcel van der Ven
  *
  * Hardware setup:	
  *
@@ -45,7 +45,7 @@
 
 
 /* TWI Prescalars */
-#define		PRESCALAR_1					0x01
+#define		PRESCALAR					0x01
 #define		PRESCALAR_4					0x04
 #define		PRESCALAR_16				0x16
 #define		PRESCALAR_64				0x64
@@ -60,24 +60,25 @@
 #define TWI_ERROR		0x02
 
 /************************************************************************/
-/* Type Definitions			                                                                  */
+/* Type Definitions
 /************************************************************************/
-enum TwiMode {MASTER_TRANSMITTER,MASTER_RECEIVER,SLAVE_TRANSMITTER,SLAVE_RECEIVER};
-enum Prescalar{PRESCALAR_1,PRESCALAR_4,PRESCALAR_16,PRESCALAR_64};
-enum TwiSpeed{LOW_SPEED, STANDARD_MODE, FAST_MODE, FAST_MODE_PLUS, HIGH_SPEED_MODE};
+typedef enum {MASTER_TRANSMITTER,MASTER_RECEIVER,SLAVE_TRANSMITTER,SLAVE_RECEIVER}	TwiModeType;
+typedef enum {PRESCALAR,PRESCALAR_4,PRESCALAR_16,PRESCALAR_64}					PrescalarType;
+typedef enum {LOW_SPEED, STANDARD_MODE, FAST_MODE, FAST_MODE_PLUS, HIGH_SPEED_MODE} TwiSpeedType;
+
 
 /************************************************************************/
-/* API					                                                                  */
+/* API
 /************************************************************************/
-void InitializeTwi(Prescalar prescalar, TwiSpeed speed);
-void SetMode(TwiMode mode, BOOL respondToGeneralCall);
+void InitializeTwi(PrescalarType prescalar, TwiSpeedType speed);
+void SetMode(TwiModeType mode, BOOL respondToGeneralCall);
 void TwiSend1Byte(BYTE address, BYTE byteToSend);
 void TwiSendBytes(BYTE address, BYTE* bytesToSend, BYTE numberOfBytes);
 
 /* Low Level */
-int SendStart(void);
-void TransmitAddress(BYTE address);
-int SendData(BYTE data);
+BYTE SendStart(void);
+BYTE TransmitAddress(BYTE address);
+BYTE SendData(BYTE data);
 void SendStop(void);
 
 

@@ -28,7 +28,7 @@
 #include "util/delay.h"
 #include "twi.h"
 #include "string.h"
-
+#include <avr/interrupt.h>
 
 /************************************************************************/
 /* Structures				                                
@@ -38,8 +38,26 @@ struct TWI_Bus
 	volatile PinSettings sda;
 	volatile PinSettings scl;
 	BYTE slaveAddress;
-	TwiMode mode;
+	TwiModeType mode;
+	
+	BOOL twiInitialized;
 }twi;
+
+
+/************************************************************************/
+/* Interrupts
+/************************************************************************/
+
+/***************************************************************************
+  Function:		ISR(TWI_vect)
+  Description:	Interrupt service routine for the TWI interrupt.
+  Receives:		Nothing
+  Returns:		Nothing
+***************************************************************************/
+ISR(TWI_vect)
+{
+	
+}
 
 
 /************************************************************************/
@@ -52,7 +70,7 @@ struct TWI_Bus
 *  Receives:		Nothing
 *  Returns:		Nothing
 ***************************************************************************/
-void InitializeTwi(Prescalar prescalar, TwiSpeed speed)
+void InitializeTwi(PrescalarType prescalar, TwiSpeedType speed)
 {
 	/* Set prescalar bits */
 	TWSR |= prescalar;
@@ -87,36 +105,39 @@ void InitializeTwi(Prescalar prescalar, TwiSpeed speed)
 *  Receives:		The mode to set.
 *  Returns:		Nothing
 ***************************************************************************/
-void SetMode(TwiMode mode, BOOL respondToGeneralCall)
+void SetMode(TwiModeType mode, BOOL respondToGeneralCall)
 {	
-	twi.mode = mode;
-
-	switch (mode)
+	if(twi.twiInitialized == TRUE)
 	{
-		case MASTER_TRANSMITTER:
-			/* Do Nothing */
-			break;
-		case MASTER_RECEIVER:
-			/* Do nothing */
-			break;
-		case SLAVE_TRANSMITTER:
+		twi.mode = mode;
+
+		switch (mode)
+		{
+			case MASTER_TRANSMITTER:
+				/* Do Nothing */
+				break;
+			case MASTER_RECEIVER:
+				/* Do nothing */
+				break;
+			case SLAVE_TRANSMITTER:
 		
-			/* Set the slave address and enable the general call address (address 0x00) if set */
-			/* Then the LSB of the TWAR register should be set */
-			TWAR = (address << 1) | respondToGeneralCall;
+				/* Set the slave address and enable the general call address (address 0x00) if set */
+				/* Then the LSB of the TWAR register should be set */
+				TWAR = (address << 1) | respondToGeneralCall;
 			
-			/* Save own address */
-			twi.slaveAddress = address;
+				/* Save own address */
+				twi.slaveAddress = address;
 			
-			/* Set TWCR into slave mode */
-			TWCR = (1 << TWEA) | (1 << TWEN);
+				/* Set TWCR into slave mode */
+				TWCR = (1 << TWEA) | (1 << TWEN);
 			
-			break;		
-		case SLAVE_RECEIVER:
+				break;		
+			case SLAVE_RECEIVER:
 		
 		
-			break;
-	}	
+				break;
+		}	
+	}
 }
 
 /***************************************************************************
@@ -128,6 +149,10 @@ void SetMode(TwiMode mode, BOOL respondToGeneralCall)
 ***************************************************************************/
 void TwiSend1Byte(BYTE address, BYTE byteToSend)
 {
+	/* Check if TWI is initialized */
+	if(twi.twiInitialized != TRUE)
+		return;
+		
 	BYTE byteArray[1] = {byteToSend};
 	
 	return TwiSendBytes(address, byteArray, 1);
@@ -142,6 +167,10 @@ void TwiSend1Byte(BYTE address, BYTE byteToSend)
 ***************************************************************************/
 void TwiSendBytes(BYTE address, BYTE* bytesToSend, BYTE numberOfBytes)
 {
+	/* Check if TWI is initialized */
+	if(twi.twiInitialized != TRUE)
+		return;
+		
 	BYTE result = SUCCEEDED;
 	
 	/* Send start condition */
@@ -150,17 +179,20 @@ void TwiSendBytes(BYTE address, BYTE* bytesToSend, BYTE numberOfBytes)
 		return result;
 		
 	/* Send address of device */
-	result = TransmitAddress();
+	TransmitAddress(address);
 	if(result != SUCCEEDED)
 		return result;
 	
-	/* Send data */	
-	result = SendData(bytesToSend);
-	if(result != SUCCEEDED)
-		return result;
+	/* Send data bytes */
+	for(int i = 0; i < numberOfBytes; i++)
+	{
+		result = SendData(bytesToSend[i]);
+		if(result != SUCCEEDED)
+			return result;
+	}	
 		
 	/* Send stop condition */
-	result = SendStop();
+	SendStop();
 	if(result != SUCCEEDED)
 		return result;
 }
@@ -172,7 +204,7 @@ void TwiSendBytes(BYTE address, BYTE* bytesToSend, BYTE numberOfBytes)
 				BYTE numberOfBytes		:		Number of bytes to send.
   Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
 ***************************************************************************/
-void TwiSend(BYTE* bytesToSend, BYTE numberOfBytes)
+void TwiRead(BYTE* bytesToSend, BYTE numberOfBytes)
 {
 	
 }
@@ -183,7 +215,7 @@ void TwiSend(BYTE* bytesToSend, BYTE numberOfBytes)
   Receives:		Nothing
   Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
 ***************************************************************************/
-int SendStart(void)
+BYTE SendStart(void)
 {
 	int error = SUCCEEDED;
 	int counter = 0;
@@ -202,7 +234,7 @@ int SendStart(void)
 	
 	/* Check for errors */
 	if((TWSR & 0xF8) != START_SEND_STATUS)
-		error = TWI_ERROR:
+		error = TWI_ERROR;
 		
 	return error;
 }
@@ -213,7 +245,7 @@ int SendStart(void)
   Receives:		8-bit address and RW bit
   Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
 ***************************************************************************/
-void TransmitAddress(BYTE address)
+BYTE TransmitAddress(BYTE address)
 {
 	int error = SUCCEEDED;
 	int counter = 0;
@@ -247,7 +279,7 @@ void TransmitAddress(BYTE address)
   Receives:		Pointer to the data.
   Returns:		Integer indicating success (0x00), timeout error (0x01) or TWI error (0x02).
 ***************************************************************************/
-int SendData(BYTE data)
+BYTE SendData(BYTE data)
 {
 	int error = SUCCEEDED;
 	int counter = 0;
@@ -270,7 +302,7 @@ int SendData(BYTE data)
 		
 	/* Check for errors */
 	if((TWSR & 0xF8) != DATA_SEND_ACK_STATUS && (TWSR & 0xF8) != DATA_RECEIVED_ACK_STATUS)
-		error = TWI_ERROR:
+		error = TWI_ERROR;
 		
 	return error;
 }
